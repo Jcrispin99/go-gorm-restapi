@@ -18,11 +18,15 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	params := mux.Vars(r)
 	db.DB.First(&user, params["id"])
+
 	if user.ID == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("User not found"))
 		return
 	}
+
+	db.DB.Model(&user).Association("Tasks").Find(&user.Tasks)
+
 	json.NewEncoder(w).Encode(&user)
 
 }
