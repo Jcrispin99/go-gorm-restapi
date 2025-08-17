@@ -6,6 +6,7 @@ import (
 
 	"github.com/faztweb/go-gorm-restapi/db"
 	"github.com/faztweb/go-gorm-restapi/models"
+	"github.com/gorilla/mux"
 )
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +15,16 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Get User Handler"))
+	var user models.User
+	params := mux.Vars(r)
+	db.DB.First(&user, params["id"])
+	if user.ID == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("User not found"))
+		return
+	}
+	json.NewEncoder(w).Encode(&user)
+
 }
 
 func PostUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,5 +47,17 @@ func PutUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Delete User Handler"))
+	var user models.User
+	params := mux.Vars(r)
+	db.DB.First(&user, params["id"])
+	if user.ID == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("User not found"))
+		return
+	}
+	db.DB.Delete(&user) // Esto elimina el usuario de forma lógica, marcándolo como eliminado
+	//db.DB.Unscoped().Delete(&user) // Si realmente quieres eliminar el usuario de forma permanente
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("User deleted successfully"))
+
 }
